@@ -1,7 +1,7 @@
 import numpy as np
 from physics_sim import PhysicsSim
 
-class MyTask:
+class VerticalTakeoffTask:
     """Task (environment) that defines the goal and provides feedback to the agent."""
     def __init__(self, init_pose=None, init_velocities=None, 
         init_angle_velocities=None, runtime=5., target_pos=None):
@@ -15,10 +15,10 @@ class MyTask:
             target_pos: target/goal (x,y,z) position for the agent
         """
         # Simulation
-        self.sim = PhysicsSim(init_pose, init_velocities, init_angle_velocities, runtime) 
-        self.action_repeat = 3
+        self.sim = PhysicsSim(init_pose, init_velocities, init_angle_velocities, runtime)
+        self.action_repeat = 1
 
-        self.state_size = self.action_repeat * 12 # 6 degrees of freedom + 3 velocity + 3 angular velocity
+        self.state_size = self.action_repeat * 12 # 6 degrees of freedom + 3 velocity + 3 angle velocity
         self.action_low = 0
         self.action_high = 900
         self.action_size = 4 # 4 rotors
@@ -26,27 +26,51 @@ class MyTask:
         # Goal
         self.target_pos = target_pos if target_pos is not None else np.array([0., 0., 10.])
 
+        # self.last_dist = np.linalg.norm(self.sim.pose[:3] - self.target_pos)
+        # self.last_pos = self.sim.pose[:3]
+
     def get_reward(self):
         """Uses current pose of sim to return reward."""
-        dist = np.linalg.norm(self.sim.pose[:3] - self.target_pos)
-        reward = self.sim.v[2] - dist - abs(self.sim.pose[2] - self.target_pos[2])
-
-        # if self.sim.pose[3] >= np.pi/3:
-        #     reward -= 10
-
-        # if self.sim.pose[4] >= np.pi/3:
-        #     reward -= 10
+        # dist = np.linalg.norm(self.sim.pose[:3] - self.target_pos)
         
-        # if dist <= 0.1:
-        #     reward += 100
+        # if dist < self.last_dist:
+        #     reward = (self.last_dist - dist)
+        # else:
+        #     reward = 2*(self.last_dist - dist)
+        # self.last_dist = dist
 
-        # if abs(self.sim.pose[2] - self.target_pos[2]) <= 1:
-        #     reward += 50
+        # if self.sim.pose[2] < self.target_pos[2]:
+        #     if self.sim.pose[2] > self.last_pos[2]:
+        #         reward += (self.sim.pose[2] - self.last_pos[2])
+        #     else:
+        #         reward += 2*(self.sim.pose[2] - self.last_pos[2])
+            
+        # self.last_pos = self.sim.pose[:3]
 
-        # if reward > 0:
-        #     reward = 1
-        # elif reward < 0:
-        #     reward = -1
+        # if self.sim.pose[2] > 0:
+        #     reward += 0.1
+
+        # reward = 0
+
+        # reward = self.sim.v[2] - 2*(abs(self.sim.v[0]) + abs(self.sim.v[1]))
+        reward = self.sim.pose[2] - 2*(abs(self.sim.pose[0]) + abs(self.sim.pose[1]))
+
+        # forward_vec = self.target_pos - self.sim.pose[:3]
+        # forward_velocity = np.inner(self.sim.v, forward_vec) / np.linalg.norm(forward_vec)
+        # if forward_velocity > 0:
+        #     reward += 5*forward_velocity
+        # # else:
+        # #     reward += forward_velocity
+
+        # deviation_velocity = np.linalg.norm(self.sim.v) - abs(forward_velocity)
+        # reward -= .1*deviation_velocity
+
+        # if dist <= 0.5:
+        #     reward = 50
+
+        # # Crash Penalty
+        if self.sim.done and self.sim.time <= self.sim.runtime:
+            reward = -50
 
         return np.tanh(reward)
         # return reward

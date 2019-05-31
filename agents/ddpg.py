@@ -166,13 +166,7 @@ class DDPG:
         self.gamma = 0.99  # discount factor
         self.tau = 0.01  # for soft update of target parameters
 
-        # Score tracker
-        self.score = 0.0
-        self.best_score = -np.inf
-
     def reset_episode(self):
-        self.total_reward = 0.0
-        self.count = 0
         self.noise.reset()
         state = self.task.reset()
         self.last_state = state
@@ -181,9 +175,6 @@ class DDPG:
     def step(self, action, reward, next_state, done):
          # Save experience / reward
         self.memory.add(self.last_state, action, reward, next_state, done)
-
-        self.total_reward += reward
-        self.count += 1
 
         # Learn, if enough samples are available in memory
         if len(self.memory) > self.batch_size:
@@ -207,11 +198,6 @@ class DDPG:
         rewards = np.array([e.reward for e in experiences if e is not None]).astype(np.float32).reshape(-1, 1)
         dones = np.array([e.done for e in experiences if e is not None]).astype(np.uint8).reshape(-1, 1)
         next_states = np.vstack([e.next_state for e in experiences if e is not None])
-
-        # Update score
-        self.score = self.total_reward / float(self.count) if self.count else 0.0
-        if self.score > self.best_score:
-            self.best_score = self.score
 
         # Get predicted next-state actions and Q values from target models
         #     Q_targets_next = critic_target(next_state, actor_target(next_state))
