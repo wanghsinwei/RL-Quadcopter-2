@@ -52,8 +52,8 @@ class VerticalTakeoffTask:
 
         # reward = 0
 
-        # reward = self.sim.v[2] - 2*(abs(self.sim.v[0]) + abs(self.sim.v[1]))
-        reward = self.sim.pose[2] - 2*(abs(self.sim.pose[0]) + abs(self.sim.pose[1]))
+        reward = self.sim.v[2] - 0.005*(self.sim.v[0]**2 + self.sim.v[1]**2) - 0.06*((self.sim.pose[0]-self.sim.init_pose[0])**2 + (self.sim.pose[1]-self.sim.init_pose[1])**2)
+        # reward = self.sim.pose[2] - 2*(abs(self.sim.pose[0]) + abs(self.sim.pose[1]))
 
         # forward_vec = self.target_pos - self.sim.pose[:3]
         # forward_velocity = np.inner(self.sim.v, forward_vec) / np.linalg.norm(forward_vec)

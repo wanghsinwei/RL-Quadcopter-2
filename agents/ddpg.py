@@ -184,11 +184,15 @@ class DDPG:
         # Roll over last state and action
         self.last_state = next_state
 
-    def act(self, state):
+    def act(self, state, add_noise=True):
         """Returns actions for given state(s) as per current policy."""
         state = np.reshape(state, [-1, self.state_size])
         action = self.actor_local.model.predict(state)[0]
-        return list(action + self.noise.sample())  # add some noise for exploration
+
+        if add_noise:
+            return list(action + self.noise.sample())  # add some noise for exploration
+        else:
+            return list(action)
 
     def learn(self, experiences):
         """Update policy and value parameters using given batch of experience tuples."""
