@@ -1,7 +1,7 @@
 import numpy as np
 from .replay_buffer import ReplayBuffer
 from .ou_noise import OUNoise
-from keras import layers, models, optimizers
+from keras import layers, models, optimizers, regularizers
 from keras import backend as K
 
 class Actor:
@@ -57,7 +57,7 @@ class Actor:
         # Incorporate any additional losses here (e.g. from regularizers)
 
         # Define optimizer and training function
-        optimizer = optimizers.Adam()
+        optimizer = optimizers.Adam(lr=0.0001)
         updates_op = optimizer.get_updates(params=self.model.trainable_weights, loss=loss)
         self.train_fn = K.function(
             inputs=[self.model.input, action_gradients, K.learning_phase()],
@@ -90,12 +90,12 @@ class Critic:
         actions = layers.Input(shape=(self.action_size,), name='actions')
 
         # Add hidden layer(s) for state pathway
-        net_states = layers.Dense(units=400, activation='relu')(states)
-        net_states = layers.Dense(units=300, activation='relu')(net_states)
+        net_states = layers.Dense(units=400, activation='relu', kernel_regularizer=regularizers.l2(0.01))(states)
+        net_states = layers.Dense(units=300, activation='relu', kernel_regularizer=regularizers.l2(0.01))(net_states)
 
         # Add hidden layer(s) for action pathway
-        net_actions = layers.Dense(units=400, activation='relu')(actions)
-        net_actions = layers.Dense(units=300, activation='relu')(net_actions)
+        net_actions = layers.Dense(units=400, activation='relu', kernel_regularizer=regularizers.l2(0.01))(actions)
+        net_actions = layers.Dense(units=300, activation='relu', kernel_regularizer=regularizers.l2(0.01))(net_actions)
 
         # Try different layer sizes, activations, add batch normalization, regularizers, etc.
 
@@ -104,7 +104,7 @@ class Critic:
         net = layers.Activation('relu')(net)
 
         # Add more layers to the combined network if needed
-        net = layers.Dense(units=64, activation='relu')(net)
+        net = layers.Dense(units=64, activation='relu', kernel_regularizer=regularizers.l2(0.01))(net)
 
         # Add final output layer to prduce action values (Q values)
         # The final output of this model is the Q-value for any given (state, action) pair.
@@ -114,7 +114,7 @@ class Critic:
         self.model = models.Model(inputs=[states, actions], outputs=Q_values)
 
         # Define optimizer and compile model for training with built-in loss function
-        optimizer = optimizers.Adam()
+        optimizer = optimizers.Adam(lr=0.001)
         self.model.compile(optimizer=optimizer, loss='mse')
 
         # Compute action gradients (derivative of Q values w.r.t. to actions)
