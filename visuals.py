@@ -1,12 +1,67 @@
 import plotly
 import plotly.graph_objs as go
+import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 
 plotly.offline.init_notebook_mode(connected=True)
 
-def plot_trajectory_3d(csv_file, title, filename, width=600, height=600, axis_ranges=([-1,1], [-1,1], [-1,1])):
+def plot_position(csv_file, size=None):
+    """Visualize how the position and velocity of the quadcopter evolved during the simulation."""
+    results = pd.read_csv(csv_file)
 
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=size)
+    fig.patch.set_facecolor('white')
+    # ax1.set_title('Position')
+    ax1.plot(results['time'], results['x'], label='x')
+    ax1.plot(results['time'], results['y'], label='y')
+    ax1.plot(results['time'], results['z'], label='z')
+    ax1.legend()
+    ax1.set_ylabel('Position')
+
+    ax2.plot(results['time'], results['x_velocity'], label='x_hat')
+    ax2.plot(results['time'], results['y_velocity'], label='y_hat')
+    ax2.plot(results['time'], results['z_velocity'], label='z_hat')
+    ax2.legend()
+    ax2.set_xlabel('Time')
+    ax2.set_ylabel('Velocity')
+
+def plot_euler_angle(csv_file, size=None):
+    """Plot the Euler angles (the rotation of the quadcopter over the  𝑥 -,  𝑦 -, and  𝑧 -axes) and the velocities (in radians per second) corresponding to each of the Euler angles."""
+    results = pd.read_csv(csv_file)
+
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=size)
+    fig.patch.set_facecolor('white')
+    ax1.plot(results['time'], results['phi'], label='phi φ')
+    ax1.plot(results['time'], results['theta'], label='theta θ')
+    ax1.plot(results['time'], results['psi'], label='psi ψ')
+    ax1.legend()
+    ax1.set_ylabel('Euler Angle')
+    
+    ax2.plot(results['time'], results['phi_velocity'], label='phi_velocity')
+    ax2.plot(results['time'], results['theta_velocity'], label='theta_velocity')
+    ax2.plot(results['time'], results['psi_velocity'], label='psi_velocity')
+    ax2.legend()
+    ax2.set_xlabel('Time')
+    ax2.set_ylabel('Euler Angle Velocity')
+
+def plot_rotor_speed(csv_file, size=None):
+    """Plot the agent's choice of actions (rotor speed)."""
+    results = pd.read_csv(csv_file)
+
+    fig = plt.figure(figsize=size)
+    fig.patch.set_facecolor('white')
+    # plt.title('Rotor Speed')
+
+    plt.plot(results['time'], results['rotor_speed1'], label='Rotor 1')
+    plt.plot(results['time'], results['rotor_speed2'], label='Rotor 2')
+    plt.plot(results['time'], results['rotor_speed3'], label='Rotor 3')
+    plt.plot(results['time'], results['rotor_speed4'], label='Rotor 4')
+    plt.legend()
+    plt.xlabel('Time')
+    plt.ylabel('Rotor Speed (revolutions / second)')
+
+def plot_trajectory_3d(csv_file, title, filename, width=600, height=600, axis_ranges=([-1,1], [-1,1], [-1,1])):
     df = pd.read_csv(csv_file)
 
     trace = go.Scatter3d(
