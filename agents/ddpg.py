@@ -128,7 +128,7 @@ class Critic:
 
 class DDPG:
     """Reinforcement Learning agent that learns using DDPG (Deep Deterministic Policy Gradients)."""
-    def __init__(self, task):
+    def __init__(self, task, batch_size=64):
         self.task = task
         self.state_size = task.state_size
         self.action_size = task.action_size
@@ -159,7 +159,7 @@ class DDPG:
 
         # Replay memory
         self.buffer_size = 100000
-        self.batch_size = 64
+        self.batch_size = batch_size
         self.memory = ReplayBuffer(self.buffer_size, self.batch_size)
 
         # Algorithm parameters
