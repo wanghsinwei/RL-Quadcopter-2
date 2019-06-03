@@ -190,7 +190,11 @@ class DDPG:
         action = self.actor_local.model.predict(state)[0]
 
         if add_noise:
-            return list(action + self.noise.sample())  # add some noise for exploration
+            action_with_noise = action + self.noise.sample()
+            action_with_noise = np.maximum(action_with_noise, np.repeat(self.action_low, self.action_size))
+            action_with_noise = np.minimum(action_with_noise, np.repeat(self.action_high, self.action_size))
+
+            return list(action_with_noise)  # add some noise for exploration
         else:
             return list(action)
 
