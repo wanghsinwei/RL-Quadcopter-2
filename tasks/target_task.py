@@ -42,10 +42,10 @@ class ReachTargetTask:
         self.last_target_vec_abs = current_target_vec_abs
 
         # Distance Reward
-        reward = target_vec_abs_diff[2] + 0.05*(target_vec_abs_diff[0] + target_vec_abs_diff[1])
+        reward = 2*target_vec_abs_diff[2] + 0.05*(target_vec_abs_diff[0] + target_vec_abs_diff[1])
 
         # Velocity Reward
-        reward += 0.2 if np.sign(target_vec[2]) == np.sign(self.sim.v[2]) else -0.2
+        reward += 0.4 if np.sign(target_vec[2]) == np.sign(self.sim.v[2]) else -0.4
         reward += 0.1 if np.sign(target_vec[0]) == np.sign(self.sim.v[0]) else -0.1
         reward += 0.1 if np.sign(target_vec[1]) == np.sign(self.sim.v[1]) else -0.1
 
@@ -55,7 +55,7 @@ class ReachTargetTask:
 
         # Crash Penalty
         if self.sim.done and self.sim.pose[2] == 0:
-            reward = -20
+            reward = -5
 
         return np.tanh(reward)
 

@@ -24,41 +24,7 @@ class VerticalTakeoffTask:
 
     def get_reward(self):
         """Uses current pose of sim to return reward."""
-        # dist = np.linalg.norm(self.sim.pose[:3] - self.target_pos)
-        
-        # if dist < self.last_dist:
-        #     reward = (self.last_dist - dist)
-        # else:
-        #     reward = 2*(self.last_dist - dist)
-        # self.last_dist = dist
-
-        # if self.sim.pose[2] < self.target_pos[2]:
-        #     if self.sim.pose[2] > self.last_pos[2]:
-        #         reward += (self.sim.pose[2] - self.last_pos[2])
-        #     else:
-        #         reward += 2*(self.sim.pose[2] - self.last_pos[2])
-            
-        # self.last_pos = self.sim.pose[:3]
-
-        # if self.sim.pose[2] > 0:
-        #     reward += 0.1
-
-        # reward = 0
-
         reward = 0.8*self.sim.v[2] - 0.2*(abs(self.sim.v[0]) + abs(self.sim.v[1])) - 0.01*np.abs(self.sim.angular_v).sum()
-
-        # forward_vec = self.target_pos - self.sim.pose[:3]
-        # forward_velocity = np.inner(self.sim.v, forward_vec) / np.linalg.norm(forward_vec)
-        # if forward_velocity > 0:
-        #     reward += 5*forward_velocity
-        # # else:
-        # #     reward += forward_velocity
-
-        # deviation_velocity = np.linalg.norm(self.sim.v) - abs(forward_velocity)
-        # reward -= .1*deviation_velocity
-
-        # if dist <= 0.5:
-        #     reward = 50
 
         # Crash Penalty
         if self.sim.done and self.sim.time <= self.sim.runtime:
