@@ -186,13 +186,13 @@ class DDPG:
         # Roll over last state and action
         self.last_state = next_state
 
-    def act(self, state, add_noise=True):
+    def act(self, state, add_noise=True, noise_scale=1):
         """Returns actions for given state(s) as per current policy."""
         state = np.reshape(state, [-1, self.state_size])
         action = self.actor_local.model.predict(state)[0]
 
         if add_noise:
-            self.last_noise_sample = self.noise.sample()
+            self.last_noise_sample = self.noise.sample() * noise_scale
             action_with_noise = np.clip(action + self.last_noise_sample, self.action_low, self.action_high)
             return list(action_with_noise)  # add some noise for exploration
         else:

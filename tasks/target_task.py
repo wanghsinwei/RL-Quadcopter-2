@@ -87,5 +87,5 @@ class ReachTargetTask:
         self.success = False
         return state
 
-    def sample_act(self, action_low, action_high):
-        return np.random.uniform(action_low, action_high, self.action_size)
+    def sample_act(self):
+        return np.random.uniform(self.action_low, self.action_high, self.action_size)
