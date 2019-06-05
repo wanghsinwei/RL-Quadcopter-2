@@ -156,6 +156,7 @@ class DDPG:
         self.exploration_theta = 0.15
         self.exploration_sigma = 0.2
         self.noise = OUNoise(self.action_size, self.exploration_mu, self.exploration_theta, self.exploration_sigma)
+        self.last_noise_sample = None
 
         # Replay memory
         self.buffer_size = 100000
@@ -168,6 +169,7 @@ class DDPG:
 
     def reset_episode(self):
         self.noise.reset()
+        self.last_noise_sample = None
         state = self.task.reset()
         self.last_state = state
         return state
@@ -190,7 +192,8 @@ class DDPG:
         action = self.actor_local.model.predict(state)[0]
 
         if add_noise:
-            action_with_noise = action + self.noise.sample()
+            self.last_noise_sample = self.noise.sample()
+            action_with_noise = action + self.last_noise_sample
             action_with_noise = np.maximum(action_with_noise, np.repeat(self.action_low, self.action_size))
             action_with_noise = np.minimum(action_with_noise, np.repeat(self.action_high, self.action_size))
 
