@@ -193,10 +193,7 @@ class DDPG:
 
         if add_noise:
             self.last_noise_sample = self.noise.sample()
-            action_with_noise = action + self.last_noise_sample
-            action_with_noise = np.maximum(action_with_noise, np.repeat(self.action_low, self.action_size))
-            action_with_noise = np.minimum(action_with_noise, np.repeat(self.action_high, self.action_size))
-
+            action_with_noise = np.clip(action + self.last_noise_sample, self.action_low, self.action_high)
             return list(action_with_noise)  # add some noise for exploration
         else:
             return list(action)
