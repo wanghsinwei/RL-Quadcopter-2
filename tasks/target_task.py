@@ -44,12 +44,12 @@ class ReachTargetTask:
         self.last_target_vec_abs = current_target_vec_abs
 
         # Distance Reward
-        reward = 0.4*target_vec_abs_diff[2] if target_vec_abs_diff[2] > 0 else 0.8*target_vec_abs_diff[2]
+        reward = 0.5*target_vec_abs_diff[2] if target_vec_abs_diff[2] > 0 else target_vec_abs_diff[2]
         reward += 0.5*target_vec_abs_diff[0] if target_vec_abs_diff[0] > 0 else target_vec_abs_diff[0]
         reward += 0.5*target_vec_abs_diff[1] if target_vec_abs_diff[1] > 0 else target_vec_abs_diff[1]
 
         # Velocity Reward
-        reward += 0.02 if np.sign(target_vec[2]) == np.sign(self.sim.v[2]) else -0.02
+        reward += 0.02 if np.sign(target_vec[2]) == np.sign(self.sim.v[2]) else -0.04
         reward += 0.02 if np.sign(target_vec[0]) == np.sign(self.sim.v[0]) else -0.02
         reward += 0.02 if np.sign(target_vec[1]) == np.sign(self.sim.v[1]) else -0.02
 
