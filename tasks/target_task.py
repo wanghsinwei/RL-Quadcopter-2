@@ -44,20 +44,26 @@ class ReachTargetTask:
         self.last_target_vec_abs = current_target_vec_abs
 
         # Distance Reward
-        reward = 4*target_vec_abs_diff[2] + 0.5*(target_vec_abs_diff[0] + target_vec_abs_diff[1])
+        reward = 8*target_vec_abs_diff[2] + 0.5*(target_vec_abs_diff[0] + target_vec_abs_diff[1])
 
         # Velocity Reward
-        reward += 0.02 if np.sign(target_vec[2]) == np.sign(self.sim.v[2]) else -0.02
+        reward += 0.04 if np.sign(target_vec[2]) == np.sign(self.sim.v[2]) else -0.04
         reward += 0.01 if np.sign(target_vec[0]) == np.sign(self.sim.v[0]) else -0.01
         reward += 0.01 if np.sign(target_vec[1]) == np.sign(self.sim.v[1]) else -0.01
 
-        # Reach Goal
-        if self.success:
-            reward = 20
-        else:
-            # No Takeoff Penalty
-            if self.sim.done and not self.has_takeoff:
-                reward = -20
+        # Constant Reward for Keep Flying
+        if self.sim.pose[2] > 0:
+            reward += 0.1
+
+        if self.sim.done:
+            if self.success:
+                reward = 20 # Reach Goal
+            elif not self.has_takeoff:
+                reward = -20 # No Takeoff Penalty
+            elif self.sim.pose[2] <= 0:
+                reward = -10 # Crash Penalty
+            elif self.sim.time <= self.sim.runtime:
+                reward = -5 # Cross Boundary Penalty
 
         return np.tanh(reward)
 
