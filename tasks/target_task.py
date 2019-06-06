@@ -18,7 +18,7 @@ class ReachTargetTask:
         self.action_repeat = 1
 
         self.state_size = self.action_repeat * 12 # 3 Euler angles + 3 velocity + 3 angle velocity + target vector
-        self.action_low = 0
+        self.action_low = 1 # Use a value larger than 0 to avoid the error of divide by zero
         self.action_high = 900
         self.action_size = 4 # 4 rotors
 
@@ -27,6 +27,8 @@ class ReachTargetTask:
         self.success = False
         self.goal_dist = 0.5
         self.last_target_vec_abs = np.absolute(self.target_pos - self.sim.pose[:3])
+
+        self.has_takeoff = False
 
     def get_reward(self):
         """Uses current pose of sim to return reward."""
@@ -42,7 +44,7 @@ class ReachTargetTask:
         self.last_target_vec_abs = current_target_vec_abs
 
         # Distance Reward
-        reward = 2*target_vec_abs_diff[2] + 0.5*(target_vec_abs_diff[0] + target_vec_abs_diff[1])
+        reward = 4*target_vec_abs_diff[2] + 0.5*(target_vec_abs_diff[0] + target_vec_abs_diff[1])
 
         # Velocity Reward
         reward += 0.02 if np.sign(target_vec[2]) == np.sign(self.sim.v[2]) else -0.02
@@ -50,12 +52,12 @@ class ReachTargetTask:
         reward += 0.01 if np.sign(target_vec[1]) == np.sign(self.sim.v[1]) else -0.01
 
         # Reach Goal
-        if self.success == True:
+        if self.success:
             reward = 20
         else:
-            # Crash Penalty
-            if self.sim.done and self.sim.pose[2] == 0:
-                reward = -5
+            # No Takeoff Penalty
+            if self.sim.done and not self.has_takeoff:
+                reward = -20
 
         return np.tanh(reward)
 
@@ -65,6 +67,8 @@ class ReachTargetTask:
         state_all = []
         for _ in range(self.action_repeat):
             done = self.sim.next_timestep(rotor_speeds) # update the sim pose and velocities
+            if not self.has_takeoff and self.sim.pose[2] > 0:
+                self.has_takeoff = True
             target_vec = self.target_pos - self.sim.pose[:3]
             dist = np.linalg.norm(target_vec)
             if not done and dist <= self.goal_dist:
@@ -76,11 +80,13 @@ class ReachTargetTask:
             state_all.append(self.sim.angular_v)
             state_all.append(target_vec)
         next_state = np.concatenate(state_all)
+
         return next_state, reward, done
 
     def reset(self):
         """Reset the sim to start a new episode."""
         self.sim.reset()
+        self.has_takeoff = False
         target_vec = self.target_pos - self.sim.pose[:3]
         self.last_target_vec_abs = np.absolute(target_vec)
         state = np.concatenate([self.sim.pose[3:], self.sim.v, self.sim.angular_v, target_vec] * self.action_repeat)
