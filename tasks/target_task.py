@@ -44,21 +44,23 @@ class ReachTargetTask:
         self.last_target_vec_abs = current_target_vec_abs
 
         # Distance Reward
-        reward = 8*target_vec_abs_diff[2] + 0.5*(target_vec_abs_diff[0] + target_vec_abs_diff[1])
+        reward = 0.4*target_vec_abs_diff[2] if target_vec_abs_diff[2] > 0 else 0.8*target_vec_abs_diff[2]
+        reward += 0.5*target_vec_abs_diff[0] if target_vec_abs_diff[0] > 0 else target_vec_abs_diff[0]
+        reward += 0.5*target_vec_abs_diff[1] if target_vec_abs_diff[1] > 0 else target_vec_abs_diff[1]
 
         # Velocity Reward
-        reward += 0.04 if np.sign(target_vec[2]) == np.sign(self.sim.v[2]) else -0.04
-        reward += 0.01 if np.sign(target_vec[0]) == np.sign(self.sim.v[0]) else -0.01
-        reward += 0.01 if np.sign(target_vec[1]) == np.sign(self.sim.v[1]) else -0.01
+        reward += 0.02 if np.sign(target_vec[2]) == np.sign(self.sim.v[2]) else -0.02
+        reward += 0.02 if np.sign(target_vec[0]) == np.sign(self.sim.v[0]) else -0.02
+        reward += 0.02 if np.sign(target_vec[1]) == np.sign(self.sim.v[1]) else -0.02
 
         # Constant Reward for Keep Flying
         if self.sim.pose[2] > 0:
             reward += 0.1
 
-        if self.sim.done:
-            if self.success:
-                reward = 20 # Reach Goal
-            elif not self.has_takeoff:
+        if self.success:
+            reward = 20 # Reach Goal
+        elif self.sim.done:
+            if not self.has_takeoff:
                 reward = -20 # No Takeoff Penalty
             elif self.sim.pose[2] <= 0:
                 reward = -10 # Crash Penalty
@@ -85,6 +87,8 @@ class ReachTargetTask:
             state_all.append(self.sim.v)
             state_all.append(self.sim.angular_v)
             state_all.append(target_vec)
+            if done:
+                break
         next_state = np.concatenate(state_all)
 
         return next_state, reward, done
