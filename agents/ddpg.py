@@ -34,7 +34,14 @@ class Actor:
 
         # Add hidden layers
         net = layers.Dense(units=400, activation='relu')(states)
+        # net = layers.Dense(units=400)(states)
+        # net = layers.BatchNormalization()(net)
+        # net = layers.Activation('relu')(net)
+
         net = layers.Dense(units=300, activation='relu')(net)
+        # net = layers.Dense(units=300)(states)
+        # net = layers.BatchNormalization()(net)
+        # net = layers.Activation('relu')(net)
 
         # Try different layer sizes, activations, add batch normalization, regularizers, etc.
 
@@ -91,7 +98,14 @@ class Critic:
 
         # Add hidden layer(s) for state pathway
         net_states = layers.Dense(units=400, activation='relu', kernel_regularizer=regularizers.l2(0.01))(states)
+        # net_states = layers.Dense(units=400, kernel_regularizer=regularizers.l2(0.01))(states)
+        # net_states = layers.BatchNormalization()(net_states)
+        # net_states = layers.Activation('relu')(net_states)
+
         net_states = layers.Dense(units=300, activation='relu', kernel_regularizer=regularizers.l2(0.01))(net_states)
+        # net_states = layers.Dense(units=300, kernel_regularizer=regularizers.l2(0.01))(net_states)
+        # net_states = layers.BatchNormalization()(net_states)
+        # net_states = layers.Activation('relu')(net_states)
 
         # Add hidden layer(s) for action pathway
         net_actions = layers.Dense(units=400, activation='relu', kernel_regularizer=regularizers.l2(0.01))(actions)

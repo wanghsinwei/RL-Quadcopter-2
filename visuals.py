@@ -61,6 +61,21 @@ def plot_rotor_speed(csv_file, size=None):
     plt.xlabel('Time')
     plt.ylabel('Rotor Speed (revolutions / second)')
 
+def running_mean(x, N):
+    cumsum = np.cumsum(np.insert(x, 0, 0))
+    return (cumsum[N:] - cumsum[:-N]) / N
+
+def plot_rewards(rewards_list, mean_reward_epi_num = 10):
+    eps, rews = np.array(rewards_list).T
+    smoothed_rews = running_mean(rews, mean_reward_epi_num)
+
+    fig=plt.figure(figsize=(12, 6), facecolor='w', edgecolor='k')
+    plt.plot(eps[-len(smoothed_rews):], smoothed_rews, label='Mean Reward')
+    plt.plot(eps, rews, color='grey', alpha=0.5, label='Reward')
+    plt.xlabel('Episode')
+    plt.ylabel('Total Reward')
+    plt.legend()
+
 def plot_trajectory_3d(csv_file, title, filename, width=600, height=600, axis_ranges=([-1,1], [-1,1], [-1,1])):
     df = pd.read_csv(csv_file)
 

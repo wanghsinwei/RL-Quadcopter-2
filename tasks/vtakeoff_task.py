@@ -18,17 +18,21 @@ class VerticalTakeoffTask:
         self.action_repeat = 1
 
         self.state_size = self.action_repeat * 9 # 3 Euler angles + 3 velocity + 3 angle velocity
-        self.action_low = 0
+        self.action_low = 1
         self.action_high = 900
         self.action_size = 4 # 4 rotors
+
+        self.has_takeoff = False
 
     def get_reward(self):
         """Uses current pose of sim to return reward."""
         reward = 0.8*self.sim.v[2] - 0.2*(abs(self.sim.v[0]) + abs(self.sim.v[1])) - 0.01*np.abs(self.sim.angular_v).sum()
 
-        # Crash Penalty
-        if self.sim.done and self.sim.time <= self.sim.runtime:
-            reward = -5
+        if self.sim.done:
+            if not self.has_takeoff:
+                reward = -20 # No Takeoff
+            elif self.sim.pose[2] <= 0:
+                reward = -5 # Crash
 
         return np.tanh(reward)
 
@@ -38,6 +42,8 @@ class VerticalTakeoffTask:
         state_all = []
         for _ in range(self.action_repeat):
             done = self.sim.next_timestep(rotor_speeds) # update the sim pose and velocities
+            if not self.has_takeoff and self.sim.pose[2] > 0:
+                self.has_takeoff = True
             reward += self.get_reward() 
             state_all.append(self.sim.pose[3:])
             state_all.append(self.sim.v)
@@ -48,5 +54,6 @@ class VerticalTakeoffTask:
     def reset(self):
         """Reset the sim to start a new episode."""
         self.sim.reset()
+        self.has_takeoff = False
         state = np.concatenate([self.sim.pose[3:], self.sim.v, self.sim.angular_v] * self.action_repeat)
         return state
